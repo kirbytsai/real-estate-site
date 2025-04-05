@@ -43,14 +43,16 @@ const LineCallback = () => {
           },
           body: JSON.stringify({ code })
         });
-
+      
+        const responseText = await response.text();
+        console.log('Raw API response:', responseText);
+        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API response error:', errorText);
-          throw new Error(`登入處理失敗 (${response.status}): ${errorText}`);
+          console.error('API response error:', responseText);
+          throw new Error(`登入處理失敗 (${response.status}): ${responseText}`);
         }
         
-        const data = await response.json();
+        const data = JSON.parse(responseText);
         console.log('Login successful, received data:', data);
         
         // 儲存 token 和使用者資訊

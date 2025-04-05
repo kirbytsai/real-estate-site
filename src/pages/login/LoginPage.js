@@ -2,17 +2,19 @@ import React from 'react';
 
 const LoginPage = () => {
   const handleLineLogin = () => {
-    // 使用環境變數
-    const LINE_CLIENT_ID = process.env.REACT_APP_LINE_CLIENT_ID;
-    const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_LINE_REDIRECT_URI);
+    // 在生產環境中使用完整的網站 URL
+    const LINE_CLIENT_ID = '2006740759';
+    const REDIRECT_URI = encodeURIComponent(
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3000/auth/line/callback'
+        : 'https://real-estate-site-orpin.vercel.app/auth/line/callback'
+    );
     
-    // 添加隨機狀態參數，提高安全性
     const STATE = Math.random().toString(36).substring(7);
     localStorage.setItem('line_login_state', STATE);
     
     const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid%20email`;
     
-    console.log('Redirecting to LINE login:', LINE_AUTH_URL);
     window.location.href = LINE_AUTH_URL;
   };
 

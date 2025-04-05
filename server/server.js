@@ -79,13 +79,7 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API server is working!' });
 });
 
-// 處理 Vercel 的 serverless 環境
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
-
-// 為 Vercel 導出 Express 應用
-module.exports = app;
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
