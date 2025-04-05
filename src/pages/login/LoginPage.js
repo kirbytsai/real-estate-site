@@ -3,11 +3,11 @@ import React from 'react';
 const LoginPage = () => {
   const handleLineLogin = () => {
     // 在生產環境中使用完整的網站 URL
-    const LINE_CLIENT_ID = '2006740759';
+    const LINE_CLIENT_ID = process.env.REACT_APP_LINE_CLIENT_ID || '2006740759';
     const REDIRECT_URI = encodeURIComponent(
       window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:3000/auth/line/callback'
-        : 'https://real-estate-site-orpin.vercel.app/auth/line/callback'
+      ? 'http://localhost:3000/auth/line/callback'
+      : `${window.location.origin}/auth/line/callback`
     );
     
     const STATE = Math.random().toString(36).substring(7);
