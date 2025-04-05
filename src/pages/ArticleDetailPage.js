@@ -183,7 +183,7 @@ const ArticleDetailPage = () => {
               <div className="ml-4">
                 <h4 className="font-semibold hover:text-primary-600 transition-colors">2023年台北房市趨勢分析</h4>
                 <p className="text-sm text-gray-500 mt-1">掌握最新市場動態，了解投資機會</p>
-                <a href="#" className="text-sm text-primary-600 hover:text-primary-800 mt-2 inline-block">閱讀全文</a>
+                <a href="/valid-link" className="text-sm text-primary-600 hover:text-primary-800 mt-2 inline-block">閱讀全文</a>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow-md p-4 flex hover:shadow-lg transition-shadow">
@@ -193,7 +193,7 @@ const ArticleDetailPage = () => {
               <div className="ml-4">
                 <h4 className="font-semibold hover:text-primary-600 transition-colors">如何選擇合適的房貸方案</h4>
                 <p className="text-sm text-gray-500 mt-1">專業建議幫助您選擇最適合的房貸</p>
-                <a href="#" className="text-sm text-primary-600 hover:text-primary-800 mt-2 inline-block">閱讀全文</a>
+                <a href="/valid-link" className="text-sm text-primary-600 hover:text-primary-800 mt-2 inline-block">閱讀全文</a>
               </div>
             </div>
           </div>
