@@ -11,7 +11,7 @@ const mockProperties = [
     area: 25,
     floor: '3/15',
     age: 10,
-    images: ['/images/property1-1.jpg', '/images/property1-2.jpg'],
+    images: ['/placeholder-property.jpg', '/placeholder-property.jpg'],
     description: '位於大安區核心地段，交通便利，鄰近捷運站，適合首購族或投資',
     features: ['近捷運', '商圈', '屋況良好']
   },
@@ -25,11 +25,25 @@ const mockProperties = [
     area: 45,
     floor: '12/20',
     age: 5,
-    images: ['/images/property2-1.jpg', '/images/property2-2.jpg'],
+    images: ['/placeholder-property.jpg', '/placeholder-property.jpg'],
     description: '寬敞三房，採光充足，可欣賞城市景觀，適合小家庭',
     features: ['景觀戶', '車位', '學區']
   },
-  // 更多模擬房源...
+  // 第三個房源
+  {
+    id: 3,
+    title: '河岸景觀豪宅',
+    region: '台北市',
+    district: '內湖區',
+    propertyType: '豪宅',
+    price: 2180000,
+    area: 60,
+    floor: '18/25',
+    age: 3,
+    images: ['/placeholder-property.jpg', '/placeholder-property.jpg'],
+    description: '位於內湖河濱特區，擁有絕佳河景視野，頂級裝潢與設備',
+    features: ['河景', '豪宅', '新屋']
+  }
 ];
 
 // 房源資料服務

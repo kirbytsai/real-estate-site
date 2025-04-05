@@ -3,11 +3,11 @@ import React from 'react';
 const HeroBanner = () => {
   return (
     <div className="relative h-[80vh] lg:h-[90vh] overflow-hidden">
-      {/* 背景圖片 */}
+      {/* 背景圖片 - 使用 CSS 背景色作為備用 */}
       <div 
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center bg-blue-800"
         style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80)',
+          backgroundImage: 'linear-gradient(to right, #4a5568, #2d3748)'
         }}
       />
       
@@ -17,7 +17,7 @@ const HeroBanner = () => {
       {/* 內容 */}
       <div className="container relative mx-auto h-full px-6 flex items-center">
         <div className="max-w-xl text-white">
-          <h1 className="hero-title mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8">
             尋找您理想的
             <br />
             <span className="text-primary-300">住宅夢想</span>

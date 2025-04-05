@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { PropertyProvider } from './context/PropertyContext';
-import { ArticleProvider } from './context/ArticleContext';  // Add this import
+import { ArticleProvider } from './context/ArticleContext';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import HomePage from './pages/HomePage';
@@ -12,6 +12,7 @@ import ArticleDetailPage from './pages/ArticleDetailPage';
 import LoginPage from './pages/login/LoginPage';
 import LineCallback from './pages/login/LineCallback';
 import AboutPage from './pages/AboutPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/auth/line/callback" element={<LineCallback />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
             <Footer />

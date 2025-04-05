@@ -2,6 +2,11 @@ import React from 'react';
 import { formatPrice, formatArea, truncateText } from '../../utils/formatters';
 
 const PropertyCard = ({ property, index = 0 }) => {
+  // 處理圖片加載錯誤的函數
+  const handleImageError = (e) => {
+    e.target.src = '/placeholder-property.jpg';
+  };
+
   return (
     <div 
       className="card group card-hover relative z-10 bg-white/90 backdrop-blur-sm"
@@ -11,9 +16,10 @@ const PropertyCard = ({ property, index = 0 }) => {
       {/* 房源圖片 */}
       <div className="relative overflow-hidden aspect-[4/3]">
         <img 
-          src={property.images[0]} 
+          src={property.images[0] || '/placeholder-property.jpg'} 
           alt={property.title} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={handleImageError}
         />
         
         {/* 類型標籤 */}
