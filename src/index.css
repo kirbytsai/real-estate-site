@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定義全域樣式 */
+body {
+  @apply text-gray-800;
+}
+
+/* 滾動條美化 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-blue-500 rounded-full;
+}
+
+/* 表單元素美化 */
+input, 
+select, 
+textarea {
+  @apply focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+/* 連結樣式 */
+a {
+  @apply transition-colors duration-300;
+}
+
+/* 全域元素樣式 - 放在 index.css */
+
+/* 按鈕樣式 */
+.btn {
+  @apply px-6 py-3 rounded-lg font-medium transition-all duration-300;
+}
+
+.btn-primary {
+  @apply bg-primary-500 hover:bg-primary-600 text-white shadow-lg hover:shadow-xl;
+}
+
+.btn-outline {
+  @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-50;
+}
+
+.btn-secondary {
+  @apply bg-secondary-100 text-secondary-800 hover:bg-secondary-200;
+}
+
+/* 卡片樣式 */
+.card {
+  @apply bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden;
+}
+
+.card-hover {
+  @apply hover:-translate-y-1;
+}
+
+/* 輸入框樣式 */
+.input {
+  @apply border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-400 focus:border-primary-400;
+}
+
+/* 過渡效果 */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+/* 特色標籤 */
+.tag {
+  @apply px-3 py-1 text-xs font-medium rounded-full;
+}
+
+.tag-primary {
+  @apply bg-primary-100 text-primary-800;
+}
+
+.tag-secondary {
+  @apply bg-secondary-100 text-secondary-800;
+}
+
+.tag-accent {
+  @apply bg-accent-100 text-accent-800;
+}
+
+/* 添加至 src/index.css */
+
+/* 全局動畫效果 */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s ease-in-out infinite;
+}
+
+/* 背景圖案 */
+.bg-pattern {
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f9ff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 漸變背景 */
+.bg-gradient-animation {
+  background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #dbeafe, #eff6ff);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 平滑過渡 */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

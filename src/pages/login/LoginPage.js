@@ -1,0 +1,49 @@
+import React from 'react';
+
+const LoginPage = () => {
+  const handleLineLogin = () => {
+    // LINE 登入 URL（這些參數需要替換成您的 LINE Channel 資訊）
+    // const LINE_CLIENT_ID = '2006740759';
+    // const REDIRECT_URI = encodeURIComponent('http://localhost:3000/auth/line/callback');
+    // const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${Math.random().toString(36).substring(7)}&scope=profile%20openid%20email`;
+    // 從環境變數獲取 LINE Channel 資訊
+    const LINE_CLIENT_ID = process.env.REACT_APP_LINE_CLIENT_ID;
+    const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_LINE_REDIRECT_URI);
+    const LINE_AUTH_URL = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${Math.random().toString(36).substring(7)}&scope=profile%20openid%20email`;
+    
+    window.location.href = LINE_AUTH_URL;
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full px-6">
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+          歡迎使用
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600 mb-8">
+          使用 LINE 帳號快速登入
+        </p>
+
+        <button
+          onClick={handleLineLogin}
+          className="w-full flex items-center justify-center px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md"
+        >
+          <svg 
+            className="w-5 h-5 mr-2" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+          Line 登入
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
