@@ -1,6 +1,4 @@
 // src/services/propertyService.js
-import axios from 'axios';
-
 // 模擬房源資料
 const mockProperties = [
   {

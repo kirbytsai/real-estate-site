@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import { propertyService } from '../services/propertyService';
 
 // 定義初始狀態
