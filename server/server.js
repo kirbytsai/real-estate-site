@@ -4,12 +4,18 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 const app = express();
 
 // 中間件設定
 app.use(cors());  // 允許跨域請求
 app.use(express.json());  // 解析 JSON 請求體
+app.use(express.static(path.join(__dirname, 'public'))); // 靜態文件服務
+
+// 導入中間件和路由
+const auth = require('./middleware/auth');
+const articlesRouter = require('./routes/articles');
 
 // 服務啟動時檢查環境變數
 console.log('Server starting with environment variables:');
@@ -18,7 +24,7 @@ console.log('LINE_CLIENT_ID exists:', !!process.env.LINE_CLIENT_ID);
 console.log('LINE_CLIENT_SECRET exists:', !!process.env.LINE_CLIENT_SECRET);
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
-// 在路由處理前檢查環境變數 - 修改這裡 ⬇️
+// 在路由處理前檢查環境變數
 const checkRequiredEnvVars = () => {
   // 使用與實際代碼中一致的環境變數名稱
   const requiredVars = ['LINE_CLIENT_ID', 'LINE_CLIENT_SECRET', 'LINE_REDIRECT_URI', 'JWT_SECRET'];
@@ -43,8 +49,6 @@ app.post('/api/auth/line/callback', async (req, res) => {
     const { code } = req.body;
     console.log('Received authorization code:', code);
 
-    // 這裡的檢查是多餘的，因為上面已經調用了 checkRequiredEnvVars()
-    // 但保留也無妨，使代碼更健壯
     if (!process.env.LINE_CLIENT_ID || !process.env.LINE_CLIENT_SECRET || !process.env.LINE_REDIRECT_URI) {
       console.error('Missing required environment variables for LINE authentication');
       console.log('Environment variables status:', {
@@ -63,7 +67,6 @@ app.post('/api/auth/line/callback', async (req, res) => {
       client_secret_exists: !!process.env.LINE_CLIENT_SECRET
     });
 
-    // 其餘代碼保持不變...
     // 向 LINE 交換 access token
     const tokenResponse = await axios.post('https://api.line.me/oauth2/v2.1/token', 
       new URLSearchParams({
@@ -189,6 +192,17 @@ app.get('/api/test', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// 受保護的用戶資訊路由
+app.get('/api/user', auth, (req, res) => {
+  res.json({ 
+    user: req.user,
+    message: '已通過身份驗證'
+  });
+});
+
+// 使用文章路由
+app.use('/api/articles', articlesRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

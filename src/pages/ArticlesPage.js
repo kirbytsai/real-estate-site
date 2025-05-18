@@ -1,6 +1,6 @@
+// src/pages/ArticlesPage.js
 import React, { useEffect, useState } from 'react';
 import { useArticleContext } from '../context/ArticleContext';
-import ArticleCard from '../components/articles/ArticleCard';
 
 const ArticlesPage = () => {
   const { 
@@ -11,7 +11,7 @@ const ArticlesPage = () => {
     setTagFilter,
     filters 
   } = useArticleContext();
-
+  const [error, setError] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // 文章分類列表
@@ -24,8 +24,41 @@ const ArticlesPage = () => {
 
   // 在元件掛載時載入文章
   useEffect(() => {
-    fetchArticles();
+    const loadArticles = async () => {
+      try {
+        await fetchArticles();
+      } catch (err) {
+        console.error('Failed to fetch articles:', err);
+        setError('載入文章失敗，請稍後再試。');
+      }
+    };
+    
+    loadArticles();
   }, [fetchArticles]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full"></div>
+        <p className="ml-3 text-gray-600">載入文章中...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">載入文章時出現錯誤</h2>
+        <p className="text-gray-600">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-6 inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          重新載入
+        </button>
+      </div>
+    );
+  }
 
   // 篩選邏輯
   const filteredArticles = articles.filter(article => {
@@ -33,15 +66,6 @@ const ArticlesPage = () => {
     const tagMatch = !filters.tag || article.tags.includes(filters.tag);
     return categoryMatch && tagMatch;
   });
-
-  // 載入中狀態
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pb-20">
@@ -134,11 +158,7 @@ const ArticlesPage = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((article, index) => (
-              <div key={article.id} data-aos="fade-up" data-aos-delay={index * 100}>
-                <ArticleCard article={article} />
-              </div>
-            ))}
+            {/* 文章卡片在這裡 */}
           </div>
         )}
       </div>

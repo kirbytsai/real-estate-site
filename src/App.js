@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { PropertyProvider } from './context/PropertyContext';
 import { ArticleProvider } from './context/ArticleContext';
-import { AuthProvider } from './context/AuthContext'; // 新增
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import HomePage from './pages/HomePage';
@@ -15,7 +15,7 @@ import LoginPage from './pages/login/LoginPage';
 import LineCallback from './pages/login/LineCallback';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
-import PrivateRoute from './components/PrivateRoute'; // 需要創建
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -27,19 +27,21 @@ function App() {
               <Header />
               <main className="flex-grow">
                 <Routes>
+                  {/* 公開路由 */}
                   <Route path="/" element={<HomePage />} />
                   <Route path="/properties" element={<PropertiesPage />} />
                   <Route path="/property/:id" element={<PropertyDetailPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/auth/line/callback" element={<LineCallback />} />
                   
-                  {/* 需要登入才能訪問的路由 */}
+                  {/* 受保護的路由 */}
                   <Route element={<PrivateRoute />}>
                     <Route path="/articles" element={<ArticlesPage />} />
                     <Route path="/article/:id" element={<ArticleDetailPage />} />
                   </Route>
                   
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/auth/line/callback" element={<LineCallback />} />
-                  <Route path="/about" element={<AboutPage />} />
+                  {/* 404 路由 */}
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </main>
