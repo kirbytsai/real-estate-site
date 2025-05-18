@@ -1,6 +1,7 @@
 // src/pages/ArticlesPage.js
 import React, { useEffect, useState } from 'react';
 import { useArticleContext } from '../context/ArticleContext';
+import ArticleCard from '../components/articles/ArticleCard'; // 添加 ArticleCard 導入
 import axios from 'axios';
 
 const ArticlesPage = () => {
@@ -25,33 +26,46 @@ const ArticlesPage = () => {
 
   // 在 ArticlesPage.js 的 useEffect 中
   useEffect(() => {
+    let isMounted = true; // 跟踪組件是否仍然掛載
+    
     const loadArticles = async (retryCount = 0) => {
       try {
+        console.log('開始載入文章...');
         await fetchArticles();
+        
+        // 只有在組件仍然掛載時才記錄日誌
+        if (isMounted) {
+          // 我們不在這裡引用 articles，而是在渲染階段使用它
+          console.log('文章載入完成');
+        }
       } catch (err) {
+        if (!isMounted) return;
+        
         console.error('Failed to fetch articles:', err);
         
-        // 如果是未授權錯誤，並且重試次數小於2，則嘗試重新設置token並重試
         if (err.response?.status === 401 && retryCount < 2) {
           console.log(`Retry attempt ${retryCount + 1}...`);
           
-          // 重新設置 token
           const token = localStorage.getItem('token');
           if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            // 短暫延遲後重試
             setTimeout(() => loadArticles(retryCount + 1), 500);
           } else {
             setError('您需要登入後才能訪問此頁面');
           }
         } else {
           setError('載入文章失敗，請稍後再試');
-        }
-      }
-    };
-    
-    loadArticles();
-  }, [fetchArticles]);
+              }
+            }
+          };
+          
+          loadArticles();
+          
+          // 清理函數
+          return () => {
+            isMounted = false;
+          };
+        }, [fetchArticles]); // 只依賴 fetchArticles
 
   if (loading) {
     return (
@@ -175,7 +189,14 @@ const ArticlesPage = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* 文章卡片在這裡 */}
+            {filteredArticles.map((article, index) => (
+              <div key={article.id || index} data-aos="fade-up" data-aos-delay={index * 100}>
+                {/* 添加文章卡片的渲染 */}
+                <ArticleCard article={article} />
+                {/* 臨時檢查以診斷問題 */}
+                {console.log('渲染文章:', article)}
+              </div>
+            ))}
           </div>
         )}
       </div>

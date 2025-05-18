@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useContext, useCallback } from 'react';
 import { articleService } from '../services/articleService';
+import axios from 'axios';
 
 // 初始狀態
 const initialState = {
@@ -74,16 +75,43 @@ export const ArticleProvider = ({ children }) => {
   // 獲取所有文章
   const fetchArticles = useCallback(async () => {
     dispatch({ type: 'FETCH_ARTICLES_START' });
+    console.log('開始獲取文章...');
+    
     try {
-      const articles = await articleService.getAllArticles();
+      // 添加超時處理
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      // 使用 axios 調用後端 API
+      const response = await axios.get('/api/articles', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log('文章獲取成功:', response.data);
+      
       dispatch({ 
         type: 'FETCH_ARTICLES_SUCCESS', 
-        payload: articles 
+        payload: response.data 
       });
     } catch (error) {
+      console.error('獲取文章失敗:', error);
+      console.error('錯誤詳情:', error.response?.data || error.message);
+      
+      // 更友好的錯誤信息
+      let errorMessage = '獲取文章失敗';
+      if (error.code === 'ERR_CANCELED') {
+        errorMessage = '請求超時，請檢查網絡連接';
+      } else if (error.response?.status === 401) {
+        errorMessage = '您需要登入才能訪問文章';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       dispatch({ 
         type: 'FETCH_ARTICLES_ERROR', 
-        payload: error.message 
+        payload: errorMessage
       });
     }
   }, []);
