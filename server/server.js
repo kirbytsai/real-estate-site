@@ -37,17 +37,20 @@ const checkRequiredEnvVars = () => {
   return true;
 };
 
+
+
 // LINE 登入回調處理
 app.post('/api/auth/line/callback', async (req, res) => {
-  // 檢查環境變數
-  if (!checkRequiredEnvVars()) {
-    return res.status(500).json({ 
-      error: '伺服器設定錯誤：缺少必要的環境變數'
-    });
-  }
   try {
     const { code } = req.body;
     console.log('Received authorization code:', code);
+
+    // 檢查環境變數
+    if (!checkRequiredEnvVars()) {
+      return res.status(500).json({ 
+        error: '伺服器設定錯誤：缺少必要的環境變數'
+      });
+    }
 
     if (!process.env.LINE_CLIENT_ID || !process.env.LINE_CLIENT_SECRET || !process.env.LINE_REDIRECT_URI) {
       console.error('Missing required environment variables for LINE authentication');
@@ -67,90 +70,110 @@ app.post('/api/auth/line/callback', async (req, res) => {
       client_secret_exists: !!process.env.LINE_CLIENT_SECRET
     });
 
-    // 向 LINE 交換 access token
-    const tokenResponse = await axios.post('https://api.line.me/oauth2/v2.1/token', 
-      new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: process.env.LINE_REDIRECT_URI,
-        client_id: process.env.LINE_CLIENT_ID,
-        client_secret: process.env.LINE_CLIENT_SECRET
-      }), {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+    try {
+      // 向 LINE 交換 access token
+      const tokenResponse = await axios.post('https://api.line.me/oauth2/v2.1/token', 
+        new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: process.env.LINE_REDIRECT_URI,
+          client_id: process.env.LINE_CLIENT_ID,
+          client_secret: process.env.LINE_CLIENT_SECRET
+        }), {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         }
-      }
-    );
+      );
 
-    const { access_token, id_token } = tokenResponse.data;
-    console.log('Received tokens from LINE:', {
-      access_token_exists: !!access_token,
-      id_token_exists: !!id_token
-    });
-
-    // 用 access token 取得用戶資料
-    let userData;
-    
-    // 如果有 id_token，可以直接從中獲取基本資訊
-    if (id_token) {
-      try {
-        const base64Payload = id_token.split('.')[1];
-        const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));
-        userData = {
-          userId: payload.sub,
-          displayName: payload.name,
-          pictureUrl: payload.picture,
-          email: payload.email
-        };
-        console.log('Extracted user data from id_token');
-      } catch (error) {
-        console.error('Error parsing id_token:', error);
-      }
-    }
-    
-    // 如果沒有從 id_token 獲取到資料，使用 access token 請求用戶資料
-    if (!userData) {
-      const userResponse = await axios.get('https://api.line.me/v2/profile', {
-        headers: { 
-          Authorization: `Bearer ${access_token}`
-        }
+      const { access_token, id_token } = tokenResponse.data;
+      console.log('Received tokens from LINE:', {
+        access_token_exists: !!access_token,
+        id_token_exists: !!id_token
       });
-      userData = userResponse.data;
-      console.log('Received user data from LINE API');
-    }
-    
-    console.log('User data:', {
-      userId: userData.userId || userData.sub,
-      name: userData.displayName || userData.name,
-      picture_exists: !!(userData.pictureUrl || userData.picture)
-    });
 
-    // 確保 JWT_SECRET 存在
-    if (!process.env.JWT_SECRET) {
-      console.error('Missing JWT_SECRET environment variable');
-      return res.status(500).json({ error: '伺服器設定錯誤：缺少 JWT 密鑰' });
-    }
-
-    // 建立 JWT token
-    const token = jwt.sign(
-      {
+      // 用 access token 取得用戶資料
+      let userData;
+      
+      // 如果有 id_token，可以直接從中獲取基本資訊
+      if (id_token) {
+        try {
+          const base64Payload = id_token.split('.')[1];
+          const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));
+          userData = {
+            userId: payload.sub,
+            displayName: payload.name,
+            pictureUrl: payload.picture,
+            email: payload.email
+          };
+          console.log('Extracted user data from id_token');
+        } catch (error) {
+          console.error('Error parsing id_token:', error);
+        }
+      }
+      
+      // 如果沒有從 id_token 獲取到資料，使用 access token 請求用戶資料
+      if (!userData) {
+        const userResponse = await axios.get('https://api.line.me/v2/profile', {
+          headers: { 
+            Authorization: `Bearer ${access_token}`
+          }
+        });
+        userData = userResponse.data;
+        console.log('Received user data from LINE API');
+      }
+      
+      console.log('User data:', {
         userId: userData.userId || userData.sub,
         name: userData.displayName || userData.name,
-        picture: userData.pictureUrl || userData.picture
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+        picture_exists: !!(userData.pictureUrl || userData.picture)
+      });
 
-    res.json({ 
-      token,
-      user: {
-        id: userData.userId || userData.sub,
-        name: userData.displayName || userData.name,
-        picture: userData.pictureUrl || userData.picture
+      // 確保 JWT_SECRET 存在
+      if (!process.env.JWT_SECRET) {
+        console.error('Missing JWT_SECRET environment variable');
+        return res.status(500).json({ error: '伺服器設定錯誤：缺少 JWT 密鑰' });
       }
-    });
 
+      // 建立 JWT token
+      const token = jwt.sign(
+        {
+          userId: userData.userId || userData.sub,
+          name: userData.displayName || userData.name,
+          picture: userData.pictureUrl || userData.picture
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({ 
+        token,
+        user: {
+          id: userData.userId || userData.sub,
+          name: userData.displayName || userData.name,
+          picture: userData.pictureUrl || userData.picture
+        }
+      });
+    } catch (lineError) {
+      console.error('LINE API error:', lineError.message);
+      
+      if (lineError.response?.data?.error === 'invalid_grant') {
+        return res.status(400).json({ 
+          error: 'invalid_grant',
+          message: '授權碼已失效或已被使用，請重新登入'
+        });
+      }
+      
+      if (lineError.response) {
+        console.error('LINE API error response:', lineError.response.data);
+        return res.status(lineError.response.status).json({
+          error: lineError.response.data.error || 'line_api_error',
+          message: lineError.response.data.error_description || '與 LINE 服務通信時出錯'
+        });
+      }
+      
+      throw lineError; // 重新拋出以便被外部 catch 捕獲
+    }
   } catch (error) {
     console.error('LINE login error:', error.message);
     

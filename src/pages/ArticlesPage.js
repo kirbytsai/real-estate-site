@@ -1,6 +1,7 @@
 // src/pages/ArticlesPage.js
 import React, { useEffect, useState } from 'react';
 import { useArticleContext } from '../context/ArticleContext';
+import axios from 'axios';
 
 const ArticlesPage = () => {
   const { 
@@ -22,14 +23,30 @@ const ArticlesPage = () => {
     '區域介紹'
   ];
 
-  // 在元件掛載時載入文章
+  // 在 ArticlesPage.js 的 useEffect 中
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadArticles = async (retryCount = 0) => {
       try {
         await fetchArticles();
       } catch (err) {
         console.error('Failed to fetch articles:', err);
-        setError('載入文章失敗，請稍後再試。');
+        
+        // 如果是未授權錯誤，並且重試次數小於2，則嘗試重新設置token並重試
+        if (err.response?.status === 401 && retryCount < 2) {
+          console.log(`Retry attempt ${retryCount + 1}...`);
+          
+          // 重新設置 token
+          const token = localStorage.getItem('token');
+          if (token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            // 短暫延遲後重試
+            setTimeout(() => loadArticles(retryCount + 1), 500);
+          } else {
+            setError('您需要登入後才能訪問此頁面');
+          }
+        } else {
+          setError('載入文章失敗，請稍後再試');
+        }
       }
     };
     

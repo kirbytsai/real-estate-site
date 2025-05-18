@@ -1,12 +1,24 @@
 // src/components/common/Header.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // 需要創建這個上下文
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios'; // 添加 axios 引用
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { currentUser, logout } = useAuth(); // 從 AuthContext 獲取用戶和登出函數
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+
+  // 確保頁面載入時設置 axios 頭部
+  useEffect(() => {
+    if (currentUser) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log('Setting Authorization header in Header component');
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+    }
+  }, [currentUser]);
 
   // 導航項目
   const getNavItems = () => {
@@ -66,6 +78,34 @@ const Header = () => {
     return baseNavItems;
   };
 
+  // 處理導航項目點擊
+  const handleNavItemClick = (e, path) => {
+    setIsMenuOpen(false);
+    
+    // 特別處理文章專欄路徑
+    if (path === '/articles') {
+      // 檢查是否登入
+      if (!currentUser) {
+        e.preventDefault();
+        navigate('/login');
+        return;
+      }
+      
+      // 確保在訪問文章專欄前設置認證頭部
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log('Setting Authorization header before navigating to /articles');
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // 可以在這裡添加小延遲以確保頭部設置完成
+        e.preventDefault();
+        setTimeout(() => {
+          navigate('/articles');
+        }, 100);
+      }
+    }
+  };
+
   // 處理登出
   const handleLogout = () => {
     logout();
@@ -114,7 +154,7 @@ const Header = () => {
                 <Link 
                   to={item.path} 
                   className="flex items-center hover:text-blue-600 transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => handleNavItemClick(e, item.path)}
                 >
                   {item.icon}
                   {item.name}

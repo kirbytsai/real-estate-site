@@ -1,9 +1,21 @@
 // src/pages/login/LoginPage.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
-  const { error } = useAuth();
+  const { error, currentUser } = useAuth();
+  const navigate = useNavigate();
+  
+  // 檢查是否已登入
+  useEffect(() => {
+    // 如果用戶已登入並且沒有剛剛登出，則導航到首頁
+    const justLoggedOut = localStorage.getItem('logged_out') === 'true';
+    
+    if (currentUser && !justLoggedOut) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const handleLineLogin = () => {
     // 在生產環境中使用完整的網站 URL
