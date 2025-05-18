@@ -1,15 +1,18 @@
+// src/pages/login/LineCallback.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const LineCallback = () => {
   const [status, setStatus] = useState('處理中...');
   const navigate = useNavigate();
+  const { loginWithLineToken, setError } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
-      // const state = urlParams.get('state');
       const error = urlParams.get('error');
       const errorDescription = urlParams.get('error_description');
       
@@ -25,57 +28,32 @@ const LineCallback = () => {
         return;
       }
 
-      // 驗證狀態 (可選)
-      // const savedState = localStorage.getItem('line_login_state');
-      localStorage.removeItem('line_login_state');
-      
       try {
-        console.log('Authorization code received:', code);
-        
         // 使用完整 URL
-        const apiUrl = `${window.location.origin}/api/auth/line/callback`;
-        console.log('Calling API at:', apiUrl);
+        const apiUrl = `/api/auth/line/callback`;
         
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code })
-        });
-      
-        const responseText = await response.text();
-        console.log('Raw API response:', responseText);
+        const response = await axios.post(apiUrl, { code });
         
-        if (!response.ok) {
-          console.error('API response error:', responseText);
-          throw new Error(`登入處理失敗 (${response.status}): ${responseText}`);
-        }
-        
-        const data = JSON.parse(responseText);
-        console.log('Login successful, received data:', data);
-        
-        // 儲存 token 和使用者資訊
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // 使用 AuthContext 登入函數
+        loginWithLineToken(response.data.token, response.data.user);
         
         setStatus('登入成功！正在重定向...');
         setTimeout(() => navigate('/'), 1000);
         
       } catch (error) {
         console.error('LINE callback error:', error);
-        setStatus('登入失敗：' + error.message);
+        setError(error.response?.data?.message || error.message);
+        setStatus('登入失敗：' + (error.response?.data?.message || error.message));
         setTimeout(() => navigate('/login'), 3000);
       }
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, loginWithLineToken, setError]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        {/* 載入動畫 */}
         <div className="w-8 h-8 mx-auto mb-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>

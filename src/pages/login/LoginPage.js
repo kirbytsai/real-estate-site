@@ -1,13 +1,17 @@
+// src/pages/login/LoginPage.js
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
+  const { error } = useAuth();
+
   const handleLineLogin = () => {
     // 在生產環境中使用完整的網站 URL
-    const LINE_CLIENT_ID = process.env.REACT_APP_LINE_CLIENT_ID || '2006740759';
+    const LINE_CLIENT_ID = '2006740759';
     const REDIRECT_URI = encodeURIComponent(
       window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:3000/auth/line/callback'
-      : `${window.location.origin}/auth/line/callback`
+        ? 'http://localhost:3000/auth/line/callback'
+        : 'https://real-estate-site-orpin.vercel.app/auth/line/callback'
     );
     
     const STATE = Math.random().toString(36).substring(7);
@@ -27,6 +31,12 @@ const LoginPage = () => {
         <p className="mt-2 text-center text-sm text-gray-600 mb-8">
           使用 LINE 帳號快速登入
         </p>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+            {error}
+          </div>
+        )}
 
         <button
           onClick={handleLineLogin}

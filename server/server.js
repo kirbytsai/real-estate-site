@@ -18,12 +18,33 @@ console.log('LINE_CLIENT_ID exists:', !!process.env.LINE_CLIENT_ID);
 console.log('LINE_CLIENT_SECRET exists:', !!process.env.LINE_CLIENT_SECRET);
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
+// 在路由處理前檢查環境變數 - 修改這裡 ⬇️
+const checkRequiredEnvVars = () => {
+  // 使用與實際代碼中一致的環境變數名稱
+  const requiredVars = ['LINE_CLIENT_ID', 'LINE_CLIENT_SECRET', 'LINE_REDIRECT_URI', 'JWT_SECRET'];
+  const missing = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missing.length > 0) {
+    console.error(`缺少必要的環境變數: ${missing.join(', ')}`);
+    return false;
+  }
+  return true;
+};
+
 // LINE 登入回調處理
 app.post('/api/auth/line/callback', async (req, res) => {
+  // 檢查環境變數
+  if (!checkRequiredEnvVars()) {
+    return res.status(500).json({ 
+      error: '伺服器設定錯誤：缺少必要的環境變數'
+    });
+  }
   try {
     const { code } = req.body;
     console.log('Received authorization code:', code);
 
+    // 這裡的檢查是多餘的，因為上面已經調用了 checkRequiredEnvVars()
+    // 但保留也無妨，使代碼更健壯
     if (!process.env.LINE_CLIENT_ID || !process.env.LINE_CLIENT_SECRET || !process.env.LINE_REDIRECT_URI) {
       console.error('Missing required environment variables for LINE authentication');
       console.log('Environment variables status:', {
@@ -42,6 +63,7 @@ app.post('/api/auth/line/callback', async (req, res) => {
       client_secret_exists: !!process.env.LINE_CLIENT_SECRET
     });
 
+    // 其餘代碼保持不變...
     // 向 LINE 交換 access token
     const tokenResponse = await axios.post('https://api.line.me/oauth2/v2.1/token', 
       new URLSearchParams({
