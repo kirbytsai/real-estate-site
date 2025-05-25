@@ -17,6 +17,7 @@ import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
 import ProfilePage from './pages/profile/ProfilePage'; // 添加導入
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                   <Route path="/properties" element={<PropertiesPage />} />
                   <Route path="/property/:id" element={<PropertyDetailPage />} />
                   <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/auth/line/callback" element={<LineCallback />} />
                   
