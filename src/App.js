@@ -16,6 +16,7 @@ import LineCallback from './pages/login/LineCallback';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
+import ProfilePage from './pages/profile/ProfilePage'; // 添加導入
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                   
                   {/* 受保護的路由 */}
                   <Route element={<PrivateRoute />}>
+                    <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/articles" element={<ArticlesPage />} />
                     <Route path="/article/:id" element={<ArticleDetailPage />} />
                   </Route>

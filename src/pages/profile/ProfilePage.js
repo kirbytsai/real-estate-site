@@ -1,0 +1,213 @@
+// src/pages/profile/ProfilePage.js
+import React from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
+
+const ProfilePage = () => {
+  const { currentUser, logout } = useAuth();
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">請先登入</h2>
+          <Link 
+            to="/login" 
+            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            前往登入
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4">
+        {/* 個人資訊卡片 */}
+        <div className="max-w-4xl mx-auto">
+          {/* 主要個人資訊區塊 */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8" data-aos="fade-up">
+            <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-8 py-12 text-white">
+              <div className="flex flex-col md:flex-row items-center">
+                {/* 用戶頭像 */}
+                <div className="mb-6 md:mb-0 md:mr-8">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                    {currentUser.picture ? (
+                      <img 
+                        src={currentUser.picture} 
+                        alt={currentUser.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                
+                {/* 問候語和基本資訊 */}
+                <div className="text-center md:text-left">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                    您好，{currentUser.name}！
+                  </h1>
+                  <p className="text-primary-100 text-lg">
+                    歡迎來到您的個人會員頁面
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                      LINE 用戶
+                    </span>
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                      會員等級：一般會員
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 帳戶詳細資訊 */}
+            <div className="p-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-6">帳戶資訊</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      用戶名稱
+                    </label>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      {currentUser.name}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      用戶 ID
+                    </label>
+                    <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
+                      {currentUser.id}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      登入方式
+                    </label>
+                    <div className="p-3 bg-gray-50 rounded-lg flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0-.27-.174-.51-.432-.596-.064-.021-.133-.031-.199-.031-.828 0-1.365-.614-1.365-1.172 0-.936.602-1.26 1.281-1.26.217 0 .43.067.612.194.064.043.117.118.117.211 0 .194-.139.3-.329.3-.06 0-.119-.024-.174-.067-.086-.064-.180-.11-.295-.11-.48 0-.674.27-.674.732 0 .351.174.629.497.629.305 0 .537-.194.537-.194.139-.097.298-.097.438 0 .139.097.139.298 0 .395-.139.097-.438.292-.738.292-.738 0-1.365-.614-1.365-1.172z"/>
+                      </svg>
+                      LINE 帳號登入
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      會員狀態
+                    </label>
+                    <div className="p-3 bg-green-50 rounded-lg flex items-center text-green-700">
+                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      活躍會員
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 快速功能區塊 */}
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay="100">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">瀏覽文章</h3>
+                <p className="text-gray-600 text-sm mb-4">查看最新的房地產知識文章</p>
+                <Link 
+                  to="/articles" 
+                  className="text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  前往閱讀 →
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay="200">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">瀏覽房源</h3>
+                <p className="text-gray-600 text-sm mb-4">探索我們精選的房地產物件</p>
+                <Link 
+                  to="/properties" 
+                  className="text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  查看房源 →
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay="300">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">登出帳號</h3>
+                <p className="text-gray-600 text-sm mb-4">安全地登出您的帳號</p>
+                <button 
+                  onClick={logout}
+                  className="text-red-600 hover:text-red-700 font-medium"
+                >
+                  立即登出 →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 最近活動 */}
+          <div className="bg-white rounded-xl shadow-lg p-8" data-aos="fade-up" data-aos-delay="400">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">最近活動</h2>
+            <div className="space-y-4">
+              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">成功登入</p>
+                  <p className="text-sm text-gray-500">剛剛 - 透過 LINE 帳號登入</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">建立會員帳號</p>
+                  <p className="text-sm text-gray-500">今天 - 歡迎加入我們的平台！</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePage;

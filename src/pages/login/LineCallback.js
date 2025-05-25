@@ -54,7 +54,7 @@ const LineCallback = () => {
         setStatus('登入成功！正在重定向...');
         
         // 使用 replace 而不是 push 進行導航，防止歷史堆棧問題
-        navigate('/', { replace: true });
+        navigate('/profile', { replace: true });
         
       } catch (error) {
         console.error('LINE login error:', error);
