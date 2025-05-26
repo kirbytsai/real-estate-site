@@ -36,10 +36,24 @@ const ConsultationHistoryTab = ({ setCancelMessage }) => {
       setLoadingHistory(false);
     }
   };
+// 修正 ConsultationHistoryTab.js 中的 handleCancelRequest 函數
 
-  // 取消申請 - 完整版本
-  const handleCancelRequest = async (requestId, reason) => {
-    console.log('準備取消申請:', { requestId, reason });
+// 取消申請 - 修正版本
+const handleCancelRequest = async (requestId, reason) => {
+    console.log('準備取消申請 - 接收到的參數:', { requestId, reason, requestIdType: typeof requestId });
+    
+    // 檢查參數
+    if (!requestId) {
+      console.error('requestId 是空值:', requestId);
+      setCancelMessage('錯誤：缺少申請 ID');
+      return;
+    }
+    
+    if (!reason) {
+      console.error('reason 是空值:', reason);
+      setCancelMessage('錯誤：缺少取消原因');
+      return;
+    }
     
     setIsCancelLoading(true);
     
@@ -47,12 +61,22 @@ const ConsultationHistoryTab = ({ setCancelMessage }) => {
     setProcessingCancellations(prev => new Set([...prev, requestId]));
     
     try {
-      const numericRequestId = parseInt(requestId);
+      // 確保 requestId 是數字
+      let numericRequestId;
       
-      if (isNaN(numericRequestId)) {
-        throw new Error('無效的申請 ID');
+      if (typeof requestId === 'number') {
+        numericRequestId = requestId;
+      } else if (typeof requestId === 'string') {
+        numericRequestId = parseInt(requestId, 10);
+      } else {
+        throw new Error(`無效的申請 ID 類型: ${typeof requestId}, 值: ${requestId}`);
       }
       
+      if (isNaN(numericRequestId)) {
+        throw new Error(`無法將 requestId 轉換為數字: ${requestId}`);
+      }
+      
+      console.log('轉換後的數字 ID:', numericRequestId);
       console.log('發送取消請求到:', `/api/contact/cancel/${numericRequestId}`);
       console.log('請求內容:', { reason });
       
@@ -101,7 +125,9 @@ const ConsultationHistoryTab = ({ setCancelMessage }) => {
         statusText: error.response?.statusText,
         data: error.response?.data,
         url: error.config?.url,
-        method: error.config?.method
+        method: error.config?.method,
+        requestId: requestId,
+        requestIdType: typeof requestId
       });
       
       let errorMessage = '取消申請失敗，請稍後再試';
@@ -116,6 +142,8 @@ const ConsultationHistoryTab = ({ setCancelMessage }) => {
         errorMessage = '登入已過期，請重新登入';
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
+      } else if (error.message.includes('無效的申請 ID')) {
+        errorMessage = error.message; // 顯示我們自定義的錯誤訊息
       } else if (error.message) {
         errorMessage = `錯誤：${error.message}`;
       }
@@ -136,10 +164,10 @@ const ConsultationHistoryTab = ({ setCancelMessage }) => {
       });
     }
   };
-
+  
   // 開啟取消確認對話框
   const openCancelModal = (requestId) => {
-    console.log('開啟取消對話框，申請 ID:', requestId);
+    console.log('開啟取消對話框，申請 ID:', requestId, '類型:', typeof requestId);
     setCancellingRequestId(requestId);
     setShowCancelModal(true);
   };

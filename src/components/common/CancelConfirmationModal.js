@@ -20,10 +20,21 @@ const CancelConfirmationModal = ({
     { value: 'other', label: '其他原因' }
   ];
 
+  // 修正：這裡需要同時傳遞 requestId 和 reason
   const handleConfirm = () => {
     const reason = selectedReason === 'other' ? cancelReason : 
                   cancelReasons.find(r => r.value === selectedReason)?.label || '';
-    onConfirm(reason);
+    
+    // 檢查 requestId 是否存在
+    if (!requestId) {
+      console.error('requestId 不存在');
+      return;
+    }
+    
+    console.log('確認取消，傳遞參數:', { requestId, reason });
+    
+    // 正確傳遞兩個參數：requestId 和 reason
+    onConfirm(requestId, reason);
   };
 
   const handleClose = () => {
@@ -70,6 +81,14 @@ const CancelConfirmationModal = ({
                 </ul>
               </div>
             </div>
+          </div>
+
+          {/* 除錯資訊 - 開發階段可以保留 */}
+          <div className="bg-gray-50 p-3 rounded-lg mb-4 text-xs text-gray-600">
+            <strong>除錯資訊:</strong><br />
+            requestId: {requestId} (類型: {typeof requestId})<br />
+            selectedReason: {selectedReason}<br />
+            customReason: {cancelReason}
           </div>
 
           {/* 取消原因選擇 */}
