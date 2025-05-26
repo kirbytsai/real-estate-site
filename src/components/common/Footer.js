@@ -1,5 +1,7 @@
+// src/components/common/Footer.js
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { 
   BuildingOfficeIcon, 
   PhoneIcon, 
@@ -9,6 +11,7 @@ import {
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { currentUser } = useAuth();
 
   return (
     <footer className="bg-gray-800 text-white py-12">
@@ -31,18 +34,38 @@ const Footer = () => {
             <li><Link to="/" className="hover:text-blue-300">首頁</Link></li>
             <li><Link to="/properties" className="hover:text-blue-300">房源列表</Link></li>
             <li><Link to="/about" className="hover:text-blue-300">關於我們</Link></li>
-            <li><Link to="/contact" className="hover:text-blue-300">聯絡我們</Link></li>
+            {/* 只有登入用戶才顯示聯絡連結 */}
+            {currentUser && (
+              <li><Link to="/contact" className="hover:text-blue-300">聯絡我們</Link></li>
+            )}
+            {/* 非登入用戶顯示登入連結 */}
+            {!currentUser && (
+              <li><Link to="/login" className="hover:text-blue-300">會員登入</Link></li>
+            )}
           </ul>
         </div>
 
-        {/* 服務項目 */}
+        {/* 會員功能 */}
         <div>
-          <h4 className="font-semibold mb-4">服務項目</h4>
+          <h4 className="font-semibold mb-4">
+            {currentUser ? '會員功能' : '服務項目'}
+          </h4>
           <ul className="space-y-2">
-            <li>房源搜尋</li>
-            <li>房產諮詢</li>
-            <li>房屋估價</li>
-            <li>投資顧問</li>
+            {currentUser ? (
+              <>
+                <li><Link to="/articles" className="hover:text-blue-300">文章專欄</Link></li>
+                <li><Link to="/profile" className="hover:text-blue-300">個人資料</Link></li>
+                <li>房屋收藏</li>
+                <li>預約紀錄</li>
+              </>
+            ) : (
+              <>
+                <li>房源搜尋</li>
+                <li>房產諮詢</li>
+                <li>房屋估價</li>
+                <li>投資顧問</li>
+              </>
+            )}
           </ul>
         </div>
 
@@ -63,6 +86,18 @@ const Footer = () => {
               service@realestate.com.tw
             </li>
           </ul>
+          
+          {/* 為非登入用戶提供登入提示 */}
+          {!currentUser && (
+            <div className="mt-4 p-3 bg-blue-900/30 rounded-lg">
+              <p className="text-sm text-blue-200">
+                <Link to="/login" className="hover:text-blue-100 underline">
+                  登入會員
+                </Link>
+                享受更多專屬服務
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

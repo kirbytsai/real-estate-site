@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios'; // 添加 axios 引用
+import axios from 'axios';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,7 +22,7 @@ const Header = () => {
 
   // 導航項目
   const getNavItems = () => {
-    // 基本導航項目
+    // 基本導航項目（所有用戶都能看到）
     const baseNavItems = [
       { 
         name: '首頁', 
@@ -50,38 +50,40 @@ const Header = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )
-      },
-      { 
-        name: '聯絡', 
-        path: '/contact', 
-        icon: (
-          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        )
       }
     ];
     
-    // 僅當用戶登錄後才添加文章專欄按鈕
+    // 僅當用戶登錄後才添加會員專屬功能
     if (currentUser) {
-      baseNavItems.push({ 
-        name: '文章專欄', 
-        path: '/articles', 
-        icon: (
-          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15M9 11l3 3m0 0l3-3m-3 3V8" />
-          </svg>
-        )
-      },
-      { 
-        name: '個人中心', 
-        path: '/profile', 
-        icon: (
-          <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        )
-      });
+      baseNavItems.push(
+        { 
+          name: '文章專欄', 
+          path: '/articles', 
+          icon: (
+            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15M9 11l3 3m0 0l3-3m-3 3V8" />
+            </svg>
+          )
+        },
+        { 
+          name: '聯絡我們', 
+          path: '/contact', 
+          icon: (
+            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          )
+        },
+        { 
+          name: '個人中心', 
+          path: '/profile', 
+          icon: (
+            <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          )
+        }
+      );
     }
     
     return baseNavItems;
@@ -91,8 +93,10 @@ const Header = () => {
   const handleNavItemClick = (e, path) => {
     setIsMenuOpen(false);
     
-    // 特別處理文章專欄路徑
-    if (path === '/articles') {
+    // 特別處理需要登入的路徑
+    const protectedPaths = ['/articles', '/contact', '/profile'];
+    
+    if (protectedPaths.includes(path)) {
       // 檢查是否登入
       if (!currentUser) {
         e.preventDefault();
@@ -100,16 +104,16 @@ const Header = () => {
         return;
       }
       
-      // 確保在訪問文章專欄前設置認證頭部
+      // 確保在訪問受保護頁面前設置認證頭部
       const token = localStorage.getItem('token');
       if (token) {
-        console.log('Setting Authorization header before navigating to /articles');
+        console.log(`Setting Authorization header before navigating to ${path}`);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        // 可以在這裡添加小延遲以確保頭部設置完成
+        // 添加小延遲以確保頭部設置完成
         e.preventDefault();
         setTimeout(() => {
-          navigate('/articles');
+          navigate(path);
         }, 100);
       }
     }

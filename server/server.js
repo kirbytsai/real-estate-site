@@ -9,13 +9,16 @@ const path = require('path');
 const app = express();
 
 // 中間件設定
-app.use(cors());  // 允許跨域請求
-app.use(express.json());  // 解析 JSON 請求體
-app.use(express.static(path.join(__dirname, 'public'))); // 靜態文件服務
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 導入中間件和路由
 const auth = require('./middleware/auth');
 const articlesRouter = require('./routes/articles');
+const contactRouter = require('./routes/contact'); // 新增聯絡路由
+
+
 
 // 服務啟動時檢查環境變數
 console.log('Server starting with environment variables:');
@@ -24,9 +27,8 @@ console.log('LINE_CLIENT_ID exists:', !!process.env.LINE_CLIENT_ID);
 console.log('LINE_CLIENT_SECRET exists:', !!process.env.LINE_CLIENT_SECRET);
 console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
-// 在路由處理前檢查環境變數
+// 檢查必要環境變數
 const checkRequiredEnvVars = () => {
-  // 使用與實際代碼中一致的環境變數名稱
   const requiredVars = ['LINE_CLIENT_ID', 'LINE_CLIENT_SECRET', 'LINE_REDIRECT_URI', 'JWT_SECRET'];
   const missing = requiredVars.filter(varName => !process.env[varName]);
   
@@ -37,15 +39,12 @@ const checkRequiredEnvVars = () => {
   return true;
 };
 
-
-
 // LINE 登入回調處理
 app.post('/api/auth/line/callback', async (req, res) => {
   try {
     const { code } = req.body;
     console.log('Received authorization code:', code);
 
-    // 檢查環境變數
     if (!checkRequiredEnvVars()) {
       return res.status(500).json({ 
         error: '伺服器設定錯誤：缺少必要的環境變數'
@@ -54,21 +53,8 @@ app.post('/api/auth/line/callback', async (req, res) => {
 
     if (!process.env.LINE_CLIENT_ID || !process.env.LINE_CLIENT_SECRET || !process.env.LINE_REDIRECT_URI) {
       console.error('Missing required environment variables for LINE authentication');
-      console.log('Environment variables status:', {
-        LINE_CLIENT_ID: process.env.LINE_CLIENT_ID ? 'set' : 'missing',
-        LINE_CLIENT_SECRET: process.env.LINE_CLIENT_SECRET ? 'set' : 'missing',
-        LINE_REDIRECT_URI: process.env.LINE_REDIRECT_URI || 'missing'
-      });
       return res.status(500).json({ error: '伺服器設定錯誤：缺少必要的環境變數' });
     }
-
-    console.log('Preparing to exchange token with LINE using:', {
-      grant_type: 'authorization_code',
-      code: 'REDACTED',
-      redirect_uri: process.env.LINE_REDIRECT_URI,
-      client_id: process.env.LINE_CLIENT_ID,
-      client_secret_exists: !!process.env.LINE_CLIENT_SECRET
-    });
 
     try {
       // 向 LINE 交換 access token
@@ -87,15 +73,11 @@ app.post('/api/auth/line/callback', async (req, res) => {
       );
 
       const { access_token, id_token } = tokenResponse.data;
-      console.log('Received tokens from LINE:', {
-        access_token_exists: !!access_token,
-        id_token_exists: !!id_token
-      });
+      console.log('Received tokens from LINE');
 
-      // 用 access token 取得用戶資料
+      // 獲取用戶資料
       let userData;
       
-      // 如果有 id_token，可以直接從中獲取基本資訊
       if (id_token) {
         try {
           const base64Payload = id_token.split('.')[1];
@@ -112,7 +94,6 @@ app.post('/api/auth/line/callback', async (req, res) => {
         }
       }
       
-      // 如果沒有從 id_token 獲取到資料，使用 access token 請求用戶資料
       if (!userData) {
         const userResponse = await axios.get('https://api.line.me/v2/profile', {
           headers: { 
@@ -122,14 +103,7 @@ app.post('/api/auth/line/callback', async (req, res) => {
         userData = userResponse.data;
         console.log('Received user data from LINE API');
       }
-      
-      console.log('User data:', {
-        userId: userData.userId || userData.sub,
-        name: userData.displayName || userData.name,
-        picture_exists: !!(userData.pictureUrl || userData.picture)
-      });
 
-      // 確保 JWT_SECRET 存在
       if (!process.env.JWT_SECRET) {
         console.error('Missing JWT_SECRET environment variable');
         return res.status(500).json({ error: '伺服器設定錯誤：缺少 JWT 密鑰' });
@@ -172,18 +146,13 @@ app.post('/api/auth/line/callback', async (req, res) => {
         });
       }
       
-      throw lineError; // 重新拋出以便被外部 catch 捕獲
+      throw lineError;
     }
   } catch (error) {
     console.error('LINE login error:', error.message);
     
-    // 詳細錯誤信息記錄
     if (error.response) {
       console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
-    } else if (error.request) {
-      console.error('Error request:', error.request);
     }
     
     res.status(500).json({ 
@@ -224,13 +193,48 @@ app.get('/api/user', auth, (req, res) => {
   });
 });
 
-// 使用文章路由
+// 使用路由
 app.use('/api/articles', articlesRouter);
+app.use('/api/contact', contactRouter); // 新增聯絡路由
+
+// 📍 新增除錯路由來測試
+app.get('/api/contact/test', (req, res) => {
+  res.json({ 
+    message: 'Contact routes are working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 📍 顯示所有註冊的路由（除錯用）
+app.get('/api/routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach(function(r){
+    if (r.route && r.route.path){
+      routes.push({
+        method: Object.keys(r.route.methods)[0].toUpperCase(),
+        path: r.route.path
+      });
+    } else if (r.name === 'router') {
+      r.handle.stack.forEach(function(nestedR) {
+        if (nestedR.route) {
+          routes.push({
+            method: Object.keys(nestedR.route.methods)[0].toUpperCase(),
+            path: r.regexp.source.replace('\\/?(?=\\/|$)', '') + nestedR.route.path
+          });
+        }
+      });
+    }
+  });
+  res.json({ routes });
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log('📍 測試聯絡路由: http://localhost:5000/api/contact/test');
+  console.log('📍 查看所有路由: http://localhost:5000/api/routes');
 });
 
 // 處理未捕獲的異常
@@ -238,7 +242,6 @@ process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
 
-// 處理未處理的 Promise 拒絕
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });

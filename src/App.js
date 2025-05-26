@@ -16,7 +16,7 @@ import LineCallback from './pages/login/LineCallback';
 import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PrivateRoute from './components/PrivateRoute';
-import ProfilePage from './pages/profile/ProfilePage'; // 添加導入
+import ProfilePage from './pages/profile/ProfilePage';
 import ContactPage from './pages/ContactPage';
 
 function App() {
@@ -29,20 +29,20 @@ function App() {
               <Header />
               <main className="flex-grow">
                 <Routes>
-                  {/* 公開路由 */}
+                  {/* ========== 公開路由 ========== */}
                   <Route path="/" element={<HomePage />} />
                   <Route path="/properties" element={<PropertiesPage />} />
                   <Route path="/property/:id" element={<PropertyDetailPage />} />
                   <Route path="/about" element={<AboutPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/auth/line/callback" element={<LineCallback />} />
                   
-                  {/* 受保護的路由 */}
+                  {/* ========== 受保護的路由（需要登入）========== */}
                   <Route element={<PrivateRoute />}>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/articles" element={<ArticlesPage />} />
                     <Route path="/article/:id" element={<ArticleDetailPage />} />
+                    <Route path="/contact" element={<ContactPage />} /> {/* 移到受保護路由 */}
                   </Route>
                   
                   {/* 404 路由 */}

@@ -1,6 +1,7 @@
 // src/pages/ContactPage.js
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const ContactPage = () => {
   const { currentUser } = useAuth();
@@ -15,6 +16,7 @@ const ContactPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   // 詢問類型選項
   const inquiryTypes = [
@@ -52,12 +54,24 @@ const ContactPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus(null);
+    setSubmitMessage('');
     
     try {
-      // 模擬 API 調用
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('提交聯絡表單:', formData);
+      
+      // 發送到真正的後端 API
+      const response = await axios.post('/api/contact/submit', formData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      console.log('API 回應:', response.data);
       
       setSubmitStatus('success');
+      setSubmitMessage(response.data.message || '您的諮詢申請已成功送出！我們將在24小時內與您聯絡。');
       
       // 重置表單
       setFormData({
@@ -70,12 +84,33 @@ const ContactPage = () => {
         preferredMeeting: 'google-meet'
       });
       
-      // 3秒後清除成功狀態
-      setTimeout(() => setSubmitStatus(null), 3000);
+      // 5秒後清除成功狀態
+      setTimeout(() => {
+        setSubmitStatus(null);
+        setSubmitMessage('');
+      }, 5000);
       
     } catch (error) {
+      console.error('提交聯絡表單失敗:', error);
+      
       setSubmitStatus('error');
-      setTimeout(() => setSubmitStatus(null), 3000);
+      
+      // 處理不同類型的錯誤
+      if (error.response?.status === 401) {
+        setSubmitMessage('登入已過期，請重新登入後再試');
+      } else if (error.response?.status === 400) {
+        setSubmitMessage(error.response.data.error || '請檢查填寫的資料是否完整');
+      } else if (error.response?.data?.error) {
+        setSubmitMessage(error.response.data.error);
+      } else {
+        setSubmitMessage('送出時發生錯誤，請稍後再試或直接撥打客服專線');
+      }
+      
+      // 3秒後清除錯誤狀態
+      setTimeout(() => {
+        setSubmitStatus(null);
+        setSubmitMessage('');
+      }, 3000);
     } finally {
       setIsSubmitting(false);
     }
@@ -318,7 +353,7 @@ const ContactPage = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-green-700 font-medium">
-                    預約申請已成功送出！我們將在24小時內與您聯絡安排會議時間。
+                    {submitMessage}
                   </span>
                 </div>
               )}
@@ -329,7 +364,7 @@ const ContactPage = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-red-700 font-medium">
-                    送出時發生錯誤，請稍後再試或直接撥打客服專線。
+                    {submitMessage}
                   </span>
                 </div>
               )}
