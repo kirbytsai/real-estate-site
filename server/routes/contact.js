@@ -1,13 +1,13 @@
-// server/routes/contact.js
+// server/routes/contact.js - MongoDB 版本
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { getMongoDatabase } = require('../database/mongodb');
 
-// 模擬資料庫儲存聯絡請求
-const contactRequests = [];
+const db = getMongoDatabase();
 
 // 提交聯絡表單 (需要身份驗證)
-router.post('/submit', auth, (req, res) => {
+router.post('/submit', auth, async (req, res) => {
   try {
     console.log('收到聯絡表單提交，用戶:', req.user);
     
@@ -29,11 +29,9 @@ router.post('/submit', auth, (req, res) => {
     }
 
     // 創建聯絡請求記錄
-    const contactRequest = {
-      id: Date.now(),
+    const contactRequestData = {
       userId: req.user.userId,
       userName: req.user.name,
-      submittedAt: new Date().toISOString(),
       formData: {
         name,
         email,
@@ -43,23 +41,21 @@ router.post('/submit', auth, (req, res) => {
         message,
         preferredMeeting
       },
-      status: 'pending', // pending, contacted, resolved, cancelled
-      cancelledAt: null,
-      cancelReason: null
+      status: 'pending'
     };
 
-    // 儲存到模擬資料庫
-    contactRequests.push(contactRequest);
+    // 保存到 MongoDB
+    const savedRequest = await db.createContactRequest(contactRequestData);
 
-    console.log('聯絡請求已儲存:', contactRequest);
+    console.log('聯絡請求已儲存到 MongoDB:', savedRequest.id);
 
     // 模擬發送通知
-    sendNotificationToTeam(contactRequest);
+    sendNotificationToTeam(savedRequest);
     
     res.json({
       success: true,
       message: '您的諮詢申請已成功送出！我們將在 24 小時內與您聯絡。',
-      requestId: contactRequest.id,
+      requestId: savedRequest.id,
       estimatedResponseTime: '24小時內'
     });
 
@@ -72,51 +68,24 @@ router.post('/submit', auth, (req, res) => {
 });
 
 // 取消聯絡申請
-router.post('/cancel/:id', auth, (req, res) => {
+router.post('/cancel/:id', auth, async (req, res) => {
   try {
     const requestId = parseInt(req.params.id);
     const { reason } = req.body;
     
     console.log(`用戶 ${req.user.name} 嘗試取消申請 #${requestId}`);
     
-    // 找到對應的申請
-    const requestIndex = contactRequests.findIndex(
-      request => request.id === requestId && request.userId === req.user.userId
-    );
+    // 更新 MongoDB 中的申請狀態
+    await db.updateContactRequestStatus(requestId, req.user.userId, 'cancelled', reason);
     
-    if (requestIndex === -1) {
-      return res.status(404).json({
-        error: '找不到該申請記錄'
-      });
-    }
-    
-    const request = contactRequests[requestIndex];
-    
-    // 檢查申請狀態是否可以取消
-    if (request.status === 'cancelled') {
-      return res.status(400).json({
-        error: '該申請已經被取消'
-      });
-    }
-    
-    if (request.status === 'resolved') {
-      return res.status(400).json({
-        error: '已完成的申請無法取消'
-      });
-    }
-    
-    // 更新申請狀態
-    contactRequests[requestIndex] = {
-      ...request,
-      status: 'cancelled',
-      cancelledAt: new Date().toISOString(),
-      cancelReason: reason || '用戶主動取消'
-    };
-    
-    console.log(`申請 #${requestId} 已被取消`);
+    console.log(`申請 #${requestId} 已在 MongoDB 中標記為取消`);
     
     // 發送取消通知
-    sendCancellationNotification(contactRequests[requestIndex]);
+    sendCancellationNotification({ 
+      id: requestId, 
+      formData: { name: req.user.name },
+      cancelReason: reason 
+    });
     
     res.json({
       success: true,
@@ -126,6 +95,11 @@ router.post('/cancel/:id', auth, (req, res) => {
     
   } catch (error) {
     console.error('取消申請時發生錯誤:', error);
+    
+    if (error.message === '找不到該申請記錄') {
+      return res.status(404).json({ error: error.message });
+    }
+    
     res.status(500).json({
       error: '取消申請失敗，請稍後再試'
     });
@@ -133,15 +107,13 @@ router.post('/cancel/:id', auth, (req, res) => {
 });
 
 // 獲取用戶的聯絡請求歷史
-router.get('/history', auth, (req, res) => {
+router.get('/history', auth, async (req, res) => {
   try {
-    const userRequests = contactRequests
-      .filter(request => request.userId === req.user.userId)
-      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    const requests = await db.getContactRequestsByUser(req.user.userId);
 
     res.json({
-      requests: userRequests,
-      total: userRequests.length
+      requests: requests,
+      total: requests.length
     });
   } catch (error) {
     console.error('獲取聯絡歷史失敗:', error);
@@ -152,13 +124,12 @@ router.get('/history', auth, (req, res) => {
 });
 
 // 獲取單一申請詳情
-router.get('/:id', auth, (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const requestId = parseInt(req.params.id);
     
-    const request = contactRequests.find(
-      request => request.id === requestId && request.userId === req.user.userId
-    );
+    const requests = await db.getContactRequestsByUser(req.user.userId);
+    const request = requests.find(r => r.id === requestId);
     
     if (!request) {
       return res.status(404).json({
@@ -197,8 +168,6 @@ function sendCancellationNotification(contactRequest) {
   console.log('==============================');
   console.log(`申請 #${contactRequest.id} 已被取消`);
   console.log(`客戶: ${contactRequest.formData.name}`);
-  console.log(`原申請時間: ${contactRequest.submittedAt}`);
-  console.log(`取消時間: ${contactRequest.cancelledAt}`);
   console.log(`取消原因: ${contactRequest.cancelReason}`);
   console.log('==============================');
 }

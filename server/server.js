@@ -1,5 +1,6 @@
 // server/server.js
-require('dotenv').config();
+// 先載入 dotenv
+require('dotenv').config({ path: '.env.local' });
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -228,6 +229,43 @@ app.get('/api/routes', (req, res) => {
   res.json({ routes });
 });
 
+
+// MongoDB 連接測試路由
+app.get('/api/test-mongodb', async (req, res) => {
+  try {
+    console.log('🧪 測試 MongoDB 連接...');
+    
+    const { getMongoDatabase } = require('./database/mongodb');
+    const db = getMongoDatabase();
+    
+    // 嘗試連接
+    await db.connect();
+    
+    // 測試資料庫操作
+    const mongoDb = await db.connect();
+    const collections = await mongoDb.listCollections().toArray();
+    
+    console.log('✅ MongoDB 測試成功');
+    
+    res.json({
+      success: true,
+      message: 'MongoDB 連接測試成功！',
+      database: 'real-estate',
+      collections: collections.map(c => c.name),
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ MongoDB 測試失敗:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'MongoDB 連接測試失敗',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
